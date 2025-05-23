@@ -82,27 +82,28 @@ def ver_locacoes():
     tabela.column("data", width=100)
     tabela.column("horario", width=150)
     tabela.column("sala", width=150)
-
+    
+    global campo_busca
     campo_busca = tk.Entry(janela_lista, width=30)
-    campo_busca.pack(pady=5)
+    campo_busca.pack(pady=(10, 5))
 
-    def filtrar():
+    def filtrar_locacoes():
         termo = campo_busca.get().lower()
         for item in tabela.get_children():
             tabela.delete(item)
 
         conexao = sqlite3.connect('locacoes.db')
         cursor = conexao.cursor()
-        cursor.execute("SELECT nome, data, horario, sala FROM locacoes")
+        cursor.execute("SELECT id, nome, data, horario, sala FROM locacoes")
         registros = cursor.fetchall()
         conexao.close()
 
         for linha in registros:
-            if termo in linha[0].lower() or termo in linha[3].lower():
+            if termo in linha[1].lower() or termo in linha[4].lower():  # nome e sala
                 tabela.insert("", tk.END, values=linha)
 
-    btn_filtrar = tk.Button(janela_lista, text="Buscar", command=filtrar)
-    btn_filtrar.pack(pady=5)
+    btn_filtrar = tk.Button(janela_lista, text="Buscar", command=filtrar_locacoes)
+    btn_filtrar.pack(pady=5)    
 
     tabela.pack(fill=tk.BOTH, expand=True)
 
@@ -140,6 +141,27 @@ def ver_locacoes():
 
     btn_fechar = tk.Button(janela_lista, text="Fechar", command=janela_lista.destroy)
     btn_fechar.pack(pady=10)
+
+def filtrar_locacoes():
+    termo = campo_busca.get()
+    if not termo:
+        messagebox.showwarning("Aviso", "Digite algo para buscar.")
+        return
+
+    for item in tabela.get_children():
+        tabela.delete(item)
+
+    conexao = sqlite3.connect('locacoes.db')
+    cursor = conexao.cursor()
+    cursor.execute("""
+        SELECT nome, data, horario, sala FROM locacoes
+        WHERE nome LIKE ? OR sala LIKE ?
+    """, (f"%{termo}%", f"%{termo}%"))
+    resultados = cursor.fetchall()
+    conexao.close()
+
+    for linha in resultados:
+        tabela.insert("", tk.END, values=linha)
 
 
 # Funcao para tentar converter a data
