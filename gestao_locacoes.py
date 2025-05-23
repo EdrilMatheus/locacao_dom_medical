@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 import sqlite3
+import datetime
 
 # Conectar banco de dados e criar a tabela
 def conectar_banco():
@@ -26,6 +27,14 @@ def salvar_dados():
 
     if not data or not horario or not sala:
         messagebox.showwarning("Aviso", "Preencha todos os campos!")
+        return
+
+    if not validar_data(data):
+        messagebox.showwarning("Aviso", "Data inválida! Use o formato dd/mm/aaaa.")
+        return
+
+    if not validar_horario(horario):
+        messagebox.showwarning("Aviso", "Horário inválido! Use o formato HH:MM - HH:MM.")
         return
 
     conexao = sqlite3.connect('locacoes.db')
@@ -69,6 +78,32 @@ def ver_locacoes():
 
     btn_fechar = tk.Button(janela_lista, text="Fechar", command=janela_lista.destroy)
     btn_fechar.pack(pady=10)
+
+# Funcao para tentar converter a data
+def validar_data(data_str):
+    try:
+        datetime.datetime.strptime(data_str, "%d/%m/%Y")
+        return True # data valida
+    except ValueError:
+        return False # data invalida
+
+# Funcao para validar horario
+def validar_horario(horario_str):
+    try:
+        partes = horario_str.split(" - ")
+        if len(partes) !=2:
+            return False
+
+        for horario in partes:
+            hora, minuto = horario.split(":")
+            hora = int(hora)
+            minuto = int(minuto)
+            if not (0 <= hora < 24 and 0 <= minuto < 60):
+                return False
+        
+        return True
+    except Exception:
+        return False
 
 #Inicio da interface grafica
 conectar_banco()
