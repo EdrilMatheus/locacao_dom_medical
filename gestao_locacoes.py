@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
 import sqlite3
 
@@ -41,12 +42,41 @@ def salvar_dados():
     campo_horario.delete(0, tk.END)
     campo_sala.delete(0, tk.END)
 
+def ver_locacoes():
+    janela_lista = tk.Toplevel()
+    janela_lista.title("Locações Salvas")
+    janela_lista.geometry("500x300")
+
+    tabela = ttk.Treeview(janela_lista, columns=("data", "horario", "sala"), show="headings")
+    tabela.heading("data", text="Data")
+    tabela.heading("horario", text="Horario")
+    tabela.heading("sala", text="Sala")
+
+    tabela.column("data", width=100)
+    tabela.column("horario", width=150)
+    tabela.column("sala", width=150)
+
+    tabela.pack(fill=tk.BOTH, expand=True)
+
+    conexao = sqlite3.connect('locacoes.db')
+    cursor = conexao.cursor()
+    cursor.execute("SELECT data, horario, sala FROM locacoes ORDER BY data ASC")
+    registros = cursor.fetchall()
+    conexao.close()
+
+    for linha in registros:
+        tabela.insert("", tk.END, values=linha)
+
+    btn_fechar = tk.Button(janela_lista, text="Fechar", command=janela_lista.destroy)
+    btn_fechar.pack(pady=10)
+
 #Inicio da interface grafica
 conectar_banco()
 
 root = tk.Tk()
+print("Janela iniciada")
 root.title("Gestão de Locações")
-root.geometry("350x250")
+root.geometry("350x350")
 root.resizable(False, False)
 
 #Data
@@ -64,8 +94,11 @@ tk.Label(root, text="Sala:").pack(pady=(10, 0))
 campo_sala = tk.Entry(root, width=35)
 campo_sala.pack()
 
-# Botão
+# Botoes
 btn_salvar = tk.Button(root, text="Salvar", command=salvar_dados, width=20, height=1)
-btn_salvar.pack(pady=20)
+btn_salvar.pack(pady=10)
+
+btn_ver = tk.Button(root, text="Ver Locações", command=ver_locacoes, width=20, height=1)
+btn_ver.pack(pady=20)
 
 root.mainloop()
