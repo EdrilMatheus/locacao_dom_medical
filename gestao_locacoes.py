@@ -4,6 +4,41 @@ from tkinter import messagebox
 import sqlite3
 import datetime
 
+# Preços padrão por tipo de cliente
+precos_inquilino = {
+    "auditório": 1000,
+    "sala 01": 200,
+    "sala 02": 200,
+    "rooftop": 1000
+}
+
+precos_nao_inquilino = {
+    "auditório": 1518,
+    "sala 01": 350,
+    "sala 02": 350,
+    "rooftop": 1000
+}
+
+def calcular_valor_locacao(inquilino, espacos_locados):
+    if inquilino:
+        precos = precos_inquilino
+    else:
+        precos = precos_nao_inquilino
+
+    valor_total = 0
+
+    # aplica o combo somente para inquilinos
+    if inquilino and "auditório" in espacos_locados and "rooftop" in espacos_locados:
+        valor_total += 1400
+        espacos_locados = [e for e in espacos_locados if e not in ["auditório", "rooftop"]]
+
+    # soma os demais espaços
+    for espaco in espacos_locados:
+        if espaco in precos:
+            valor_total += precos[espaco]
+
+    return valor_total
+
 # Conectar banco de dados e criar a tabela
 def conectar_banco():
     conexao = sqlite3.connect('locacoes.db')
@@ -211,42 +246,3 @@ def conflito_locacao(data, horario, sala):
 
 #Inicio da interface grafica
 conectar_banco()
-
-#Criando janela  principal
-root = tk.Tk()
-print("Janela iniciada")
-root.title("Gestão de Locações")
-root.geometry("350x350")
-root.resizable(False, False)
-
-#Nome do Locatario
-tk.Label(root, text="Nome do Locatario:").pack(pady=(10, 0))
-campo_nome = tk.Entry(root, width=35)
-campo_nome.pack()
-
-#Data
-tk.Label(root, text="Data (dd/mm/aaaa):").pack(pady=(10, 0))
-campo_data = tk.Entry(root, width=35)
-campo_data.pack()
-
-#Horario
-tk.Label(root, text="Horário (ex: 14:00 - 16:00):").pack(pady=(10, 0))
-campo_horario = tk.Entry(root, width=35)
-campo_horario.pack()
-
-#Sala
-tk.Label(root, text="Sala:").pack(pady=(10, 0))
-salas_disponiveis = ["Auditório", "Sala de Reúnião 01", "Sala de Reúnião 02", "RoofTop"]
-campo_sala = ttk.Combobox(root, values=salas_disponiveis, state="readonly")
-campo_sala.set("Selecione uma sala")
-campo_sala.pack()
-
-
-# Botoes
-btn_salvar = tk.Button(root, text="Salvar", command=salvar_dados, width=20, height=1)
-btn_salvar.pack(pady=10)
-
-btn_ver = tk.Button(root, text="Ver Locações", command=ver_locacoes, width=20, height=1)
-btn_ver.pack(pady=10)
-
-root.mainloop()
